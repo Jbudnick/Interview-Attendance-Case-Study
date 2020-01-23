@@ -1,7 +1,9 @@
-## Case Study
+# Case Study: Non-parametric models
 
-Today we are going to use all the skills we have learned to tackle a real
-problem in industry. The problem is churn prediction with a ride-sharing
-company in San Francisco.  Since the data is sourced from a real company, we
-ask you not to share the dataset. See more about the problem in
-[group.md](group.md). 
+In this case study you should use non-parametric supervised learning models you were exposed to in class (such as kNN, decision trees, random forest, boosting) to create a predictive machine learning model.  It may be interesting to compare non-parametric to parametric (linear/logistic regression) results.  
+
+Here are your case study options:  
+
+* [Predict ride-sharing company churn](https://github.com/gSchool/dsi-ml-case-study)  
+
+* [Predict interview attendance](https://github.com/gSchool/ds-interview-attendance-case-study)
