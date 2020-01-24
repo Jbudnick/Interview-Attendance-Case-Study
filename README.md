@@ -9,7 +9,7 @@ Here are your case study options:
 * [Predict interview attendance](https://github.com/GalvanizeDataScience/supervised-learning-case-study/blob/Denver/interview/case_study_description.md)
 
 
-Near the end of the day you'll be asked to present capstone results.  Please present:  
+Near the end of the day you'll be asked to present capstone results from your project README.  Please present:  
 * Your problem statement  
 * A description of your data  
 * EDA and feature engineering  
