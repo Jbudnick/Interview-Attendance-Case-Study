@@ -24,6 +24,6 @@ Notes:
 Be wary of data leakage - unwittingly providing more information about your target in your 
 dataset than would be available at the time of prediction.  Read more [here.](https://www.kaggle.com/dansbecker/data-leakage)
 
-To determine real-world relevance, you usually need to bring in your out-of-model knowlege to 
+To determine real-world relevance, you usually need to bring in your out-of-model knowledge to 
 quantify the cost-benefit of performance metrics.  Recall your profit-curve assignment!
 
