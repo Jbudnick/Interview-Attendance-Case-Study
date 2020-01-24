@@ -4,6 +4,6 @@ In this case study you should use non-parametric supervised learning models you 
 
 Here are your case study options:  
 
-* [Predict ride-sharing company churn](https://github.com/gSchool/dsi-ml-case-study)  
+* [Predict ride-sharing company churn](https://github.com/GalvanizeDataScience/supervised-learning-case-study/blob/Denver/ride-share/case_study_description.md)
 
-* [Predict interview attendance](https://github.com/gSchool/ds-interview-attendance-case-study)
+* [Predict interview attendance](https://github.com/GalvanizeDataScience/supervised-learning-case-study/blob/Denver/interview/case_study_description.md)
