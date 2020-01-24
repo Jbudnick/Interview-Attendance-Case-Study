@@ -9,7 +9,8 @@ Here are your case study options:
 * [Predict interview attendance](https://github.com/GalvanizeDataScience/supervised-learning-case-study/blob/Denver/interview/case_study_description.md)
 
 
-Near the end of the day you'll be asked to present capstone results from your project README.  Please present:  
+Near the end of the day you'll be asked to present capstone results from your project README.    
+Please present:  
 * Your problem statement  
 * A description of your data  
 * EDA and feature engineering  
@@ -18,3 +19,11 @@ Near the end of the day you'll be asked to present capstone results from your pr
 * Model results on unseen data  
 * Relevance to the real world  
 * Areas for future work  
+
+Notes: 
+Be wary of data leakage - unwittingly providing more information about your target in your 
+dataset than would be available at the time of prediction.  Read more [here.](https://www.kaggle.com/dansbecker/data-leakage)
+
+To determine real-world relevance, you usually need to bring in your out-of-model knowlege to 
+quantify the cost-benefit of performance metrics.  Recall your profit-curve assignment!
+
