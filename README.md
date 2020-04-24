@@ -47,17 +47,20 @@ Data dictionaries that indicate what each column in the data means are included 
 
 - 37 columns representing health, 
  
-       'county_code', 'COUNTY', 'STATEABBREVIATION', 'YEAR', 'AMAT_fac' 'AMAT - substance abuse facilies,
-           'HIVdiagnoses', 'HIVincidence', 'HIVprevalence', 'MH_fac' number of facilities Mental Health,
-           'Med_AMAT_fac', 'Med_MH_fac', 'Med_SA_fac', 'Med_SMAT_fac',
-           'Med_TMAT_fac', 'PLHIV', 'Population', 'SA_fac', 'SMAT_fac', 'TMAT_fac',
-           'drugdeathrate', 'drugdeathrate_est', 'drugdeaths', 'mme_percap',
-           'partD30dayrxrate', 'pctunins', 'num_SSPs', 'bup_phys', 'drugdep',
-           'pctunmetneed', 'nonmedpain', 'ADULTMEN', 'MSM12MTH', 'MSM5YEAR',
-           '%msm12month', '%msm5yr', 'unemployment_rate', 'poverty_rate',
-           'household_income'
+       city: city this user signed up in phone: primary device for this user
+      signup_date: date of account registration; in the form YYYYMMDD
+      last_trip_date: the last time this user completed a trip; in the form YYYYMMDD
+      avg_dist: the average distance (in miles) per trip taken in the first 30 days after signup
+      avg_rating_by_driver: the rider’s average rating over all of their trips
+      avg_rating_of_driver: the rider’s average rating of their drivers over all of their trips
+      surge_pct: the percent of trips taken with surge multiplier > 1
+      avg_surge: The average surge multiplier over all of this user’s trips
+      trips_in_first_30_days: the number of trips this user took in the first 30 days after signing up
+      luxury_car_user: TRUE if the user took a luxury car in their first 30 days; FALSE otherwise
+      weekday_pct: the percent of the user’s trips occurring during a weekday
            
- - 3007 rows where each row is a unique US county (contains all US counties)
+ - 3007 rows where each row is a unique account?
+ 
 <p align="center">
   <img src="img/scatter_matrix_second_selection.png" width = 860>
 </p>
@@ -77,31 +80,24 @@ Our first approach at selecting relevant and useful metrics was to 'eye-ball' th
 
 ## Cross-validation
 
-### Kfolds
+### Train/Test
 
-After shuffling our data, we chose to holdout 1/5th of the data until the end and to use 4/5ths as our training/testing set. Then we split our train/test set into five subsets. This allows for a more robust, less variable estimate of the mean validation error. Below you can see an illustration of how the validation data and training data change.
+Data was already split
 
 <p align="center">
   <img src="img/kfolds.png" width = 600>
 </p>
 
-## Regression Models
+## Learning Models
 
-### Ordinary Least Square
+### Random Forest
 
-Our second approach at selecting useful parameters was to apply an objective mathematical framework. We chose to analyze all non-string, non-year columns (33/38) using an OLS regression. 
+Our first approach 
 
 <p align="center">
   <img src="img/ols_summary_all.png" width = 600>
 </p>
 
-By removing columns with a p value greater than 0.1, we were left with the following 15 metrics:
-
-      'AMAT_fac', 'HIVdiagnoses', 'HIVprevalence', 'MH_fac', 'Med_AMAT_fac', 'Med_MH_fac', 'Med_SMAT_fac', 'PLHIV', 'drugdeaths', 'mme_percap', 'num_SSPs', 'bup_phys', 'drugdep', 'ADULTMEN', 'poverty_rate'
-  
-<p align="center">
-  <img src="img/ols_summary_second_selection.png" width = 600>
-</p>
 
 
 ### Lasso
