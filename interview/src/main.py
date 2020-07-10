@@ -7,6 +7,7 @@ Gender: 1 = Male, 0 = Female
 
 import numpy as np
 import pandas as pd
+import datetime
 from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from statsmodels.tools import add_constant
@@ -42,6 +43,15 @@ def df_col_setup(df):
         'Has the call letter been shared' : 'Call_Letter',
         'Marital Status' : 'Married'
     }
+
+    def fix_date(df):
+        '''
+        Replaces Na dates with 0001-01-01
+        '''
+        Na_indices = df[df['Date'] == 'Na'].index
+        df.loc[Na_indices, 'Date'] = datetime.date(1,1,1)
+        
+        return df
 
     df.rename(columns = col_rename_dict, inplace = True)
 
@@ -111,13 +121,12 @@ def compare_bools(df, col1, col2):
 
 def hot_encode():
     # Industry column has ~20 for one hot encoding
-
-    X = df.select_dtypes(exclude=['number']) \
-                    .apply(LabelEncoder().fit_transform) \
-                    .join(df.select_dtypes(include=['number']))
+    X = df.select_dtypes(exclude=['number']).apply(LabelEncoder().fit_transform).join(df.select_dtypes(include=['number']))
 
 
 def log_reg(df):
+    # taken from Logistic Regression Solutions Notebook
+    # https://github.com/GalvanizeDataScience/solutions-g114/blob/master/logistic-regression/logistic_regression_solutions.ipynb
     X = df[['3hr_call', 'alt_phone', 'Married','is_local']].values
     X_const = add_constant(X, prepend=True)
     y = df['Observed Attendance'].values
@@ -126,12 +135,13 @@ def log_reg(df):
 
     logit_model.summary()
 
-    kfold = KFold(n_splits=10)
+    kfold = KFold(n_splits=5)
 
     accuracies = []
     precisions = []
     recalls = []
 
+    # why splitting after fitting - leakage?
     X_train, X_test, y_train, y_test = train_test_split(X, y)
 
     for train_index, test_index in kfold.split(X_train):
