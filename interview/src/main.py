@@ -4,6 +4,8 @@ Gender: 1 = Male, 0 = Female
 
 '''
 
+from dateparser import parse
+# Marc please run conda install dateparser in your terminal if this doesn't work
 
 import numpy as np
 import pandas as pd
@@ -28,6 +30,15 @@ def load_df():
         
     return df
 
+def fix_date(df):
+        '''
+        Replaces Na dates with 0001-01-01
+        '''
+        Na_indices = df[df['Date'] == 'Na'].index
+        df.loc[Na_indices, 'Date'] = '2000-01-01'
+        df['Date'] = df['Date'].apply(parse)
+        return df
+
 def df_col_setup(df):
     col_rename_dict = {
         'Date of Interview': 'Date',
@@ -43,15 +54,6 @@ def df_col_setup(df):
         'Has the call letter been shared' : 'Call_Letter',
         'Marital Status' : 'Married'
     }
-
-    def fix_date(df):
-        '''
-        Replaces Na dates with 0001-01-01
-        '''
-        Na_indices = df[df['Date'] == 'Na'].index
-        df.loc[Na_indices, 'Date'] = datetime.date(1,1,1)
-        
-        return df
 
     df.rename(columns = col_rename_dict, inplace = True)
 
@@ -88,6 +90,8 @@ def df_col_setup(df):
         df['Industry'][df['Industry'] == each] = 'IT'
 
     create_local_col(df)
+
+    fix_date(df)
 
 
 def convert_to_boolean(df, col, def_1):
@@ -161,7 +165,7 @@ if __name__ == "__main__":
     df = load_df()
     df_col_setup(df)
 
-    log_reg(df)
+    # log_reg(df)
 
     # for bool_col in ['is_local', '3hr_call', 'alt_phone', 'Permissions', 'Married']:
     #     col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
