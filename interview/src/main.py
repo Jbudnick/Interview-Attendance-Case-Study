@@ -30,15 +30,48 @@ def load_df():
     return df
 
 def fix_date(df):
-        '''
-        Replaces Na dates
-        '''
-        default_date = '2000-1-1'
-        Na_indices = df[df['Date'] == 'Na'].index
-        df.loc[Na_indices, 'Date'] = default_date
-        df['Date'] = df['Date'].apply(parse)
-        df.loc[505:524, 'Date'] = parse('28.08.2016')
-        return df
+    '''
+    Replaces Na dates
+    '''
+    default_date = '2000-1-1'
+    Na_indices = df[df['Date'] == 'Na'].index
+    df.loc[Na_indices, 'Date'] = default_date
+    df['Date'] = df['Date'].apply(parse)
+    df.loc[505:524, 'Date'] = parse('28.08.2016')
+    break_down_date(df)
+    return df
+def get_stacked_bars(df, x = 'dayofweek', y = 'Observed Attendance', order = None):
+    specific_df = df.loc[:, [x, y, 'Date']]
+    specific_df = specific_df.groupby([x, y]).count().reset_index()
+    specific_df.rename(columns = {'Date' : 'Count'}, inplace = True)
+    showDict = {0 : 'No Show', 1: 'Show'}
+    specific_df[y] = specific_df[y].apply(lambda z: showDict[z])
+
+    pivot_df = specific_df.pivot(index= x, columns= y, values='Count')
+    if order == None:
+        pivot_df = pivot_df.loc[:, ['Show', 'No Show']]
+    else:
+        pivot_df = pivot_df.loc[order, ['Show', 'No Show']]
+    fig, axes = plt.subplots(1,2, figsize = (16, 7))
+    pivot_df.plot.bar(stacked = True, color = ['blue', 'red'], figsize=(16,7), ax = axes[0])
+
+    pivot_df['percent show'] = round(100 * pivot_df['Show'] / (pivot_df['Show'] +  pivot_df['No Show']), 2)
+    pivot_df['percent no show'] = round(100 * pivot_df['No Show'] / (pivot_df['Show'] +  pivot_df['No Show']), 2)
+    pivot_df[['percent show', 'percent no show']].plot.bar(stacked=True, color = ['blue', 'red'], figsize=(16,7), ax = axes[1])
+
+def break_down_date(df):
+    df['Year'] = df['Date'].apply(lambda x: x.year)
+    df['Month'] = df['Date'].apply(lambda x: x.month)
+    df['day'] = df['Date'].apply(lambda x: x.day)
+    #0 is Monday
+    df['dayofweek'] = df['Date'].apply(lambda x: x.dayofweek)
+    return df
+
+def combine_types(df, col, other_entries, combine_to):
+    for entry in other_entries:
+        df[col].replace(entry, combine_to, inplace = True)
+    return df
+
 
 def df_col_setup(df):
     col_rename_dict = {
@@ -83,14 +116,9 @@ def df_col_setup(df):
     
 
     #Combine redundant IT variations for Company into IT
-    others = ('IT Services', 'IT Products and Services')
-    for each in others:
-        df['Industry'][df['Industry'] == each] = 'IT'
-
+    combine_types(df, col='Industry', other_entries=('IT Services', 'IT Products and Services'), combine_to = 'IT')
     create_local_col(df)
-
     fix_date(df)
-
 
 def convert_to_boolean(df, col, def_1):
     df[col][df[col] == def_1] = 1
@@ -159,6 +187,7 @@ def log_reg(df):
     print("Precision:", np.average(precisions))
     print("Recall:", np.average(recalls))
 
+
 if __name__ == "__main__":
     df = load_df()
     df_col_setup(df)
@@ -205,7 +234,3 @@ if __name__ == "__main__":
 
 
 
-
-
-    
-    
