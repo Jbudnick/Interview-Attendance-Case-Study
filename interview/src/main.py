@@ -24,7 +24,6 @@ from statsmodels.tools.tools import add_constant
 def load_df():
     cols = np.arange(0,23)
     df = pd.read_csv("../data/Interview.csv", usecols=cols)
-
     df.drop(1233, inplace=True)
     df.drop(['Candidate Current Location', 'Name(Cand ID)'], axis=1, inplace=True)
         
@@ -32,11 +31,13 @@ def load_df():
 
 def fix_date(df):
         '''
-        Replaces Na dates with 0001-01-01
+        Replaces Na dates
         '''
+        default_date = '2000-1-1'
         Na_indices = df[df['Date'] == 'Na'].index
-        df.loc[Na_indices, 'Date'] = '2000-01-01'
+        df.loc[Na_indices, 'Date'] = default_date
         df['Date'] = df['Date'].apply(parse)
+        df.loc[505:524, 'Date'] = parse('28.08.2016')
         return df
 
 def df_col_setup(df):
@@ -56,18 +57,15 @@ def df_col_setup(df):
     }
 
     df.rename(columns = col_rename_dict, inplace = True)
-
-    df[df['No_Unscheduled_Meetings'].isnull()] = 'Na'
-    df[df['Permissions'].isnull()] = 'Na'
-    df[df['alt_phone'].isnull()] = 'Na'
-    df[df['Take_Resume'].isnull()] = 'Na'
-    df[df['Confirmed_Location'].isnull()] = 'Na'
+    cols_with_NaN = ['No_Unscheduled_Meetings', 'Permissions',
+                     'alt_phone', 'Take_Resume', 'Confirmed_Location', 'Call_Letter', '3hr_call']
+    for col in cols_with_NaN:
+        df[col].fillna('Na', inplace = True)
 
     clean_col(df, ["Observed Attendance", 'No_Unscheduled_Meetings', "Candidate Job Location", 
                     "Location", 'Permissions', 'alt_phone', 'Call_Letter', '3hr_call', 'Take_Resume',
                     'Confirmed_Location'])
     
-
     # If Not sure or NA is provided, grouped into No for boolean values - may reconsider adding third "Unknown" entry later
     cols_to_bool = [('Observed Attendance', 'yes'),
                     ('Married', 'Married'), 
