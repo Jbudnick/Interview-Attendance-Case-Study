@@ -28,6 +28,9 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 
 from plot_creator import get_stacked_bars
+plt.rcParams.update({'font.size': 16})
+plt.style.use('fivethirtyeight')
+plt.close('all')
 
 def load_df():
     cols = np.arange(0,23)
@@ -52,9 +55,9 @@ def fix_date(df):
 def break_down_date(df):
     df['Year'] = df['Date'].apply(lambda x: x.year)
     df['Month'] = df['Date'].apply(lambda x: x.month)
-    df['day'] = df['Date'].apply(lambda x: x.day)
+    df['Day'] = df['Date'].apply(lambda x: x.day)
     #0 is Monday
-    df['dayofweek'] = df['Date'].apply(lambda x: x.dayofweek)
+    df['Day of Week'] = df['Date'].apply(lambda x: x.dayofweek)
     return df
 
 def combine_types(df, col, other_entries, combine_to):
@@ -73,7 +76,7 @@ def df_col_setup(df):
         'Hope there will be no unscheduled meetings': 'No Unscheduled Meetings',
         "Can I Call you three hours before the interview and follow up on your attendance for the interview": '3 Hour Confirmation Call',
         "Can I have an alternative number/ desk number. I assure you that I will not trouble you too much": "Alternate Phone Number",
-        'Have you taken a printout of your updated resume. Have you read the JD and understood the same': "Took Resume, Read JD",
+        'Have you taken a printout of your updated resume. Have you read the JD and understood the same': "Took Resume and Read JD",
         'Are you clear with the venue details and the landmark.' : 'Confirmed Location',
         'Has the call letter been shared' : 'Call Letter Shared',
         'Marital Status' : 'Married'
@@ -81,12 +84,12 @@ def df_col_setup(df):
 
     df.rename(columns = col_rename_dict, inplace = True)
     cols_with_NaN = ['No Unscheduled Meetings', 'Permissions',
-                     'Alternate Phone Number', 'Took Resume, Read JD', 'Confirmed Location', 'Call Letter Shared', '3 Hour Confirmation Call']
+                     'Alternate Phone Number', 'Took Resume and Read JD', 'Confirmed Location', 'Call Letter Shared', '3 Hour Confirmation Call']
     for col in cols_with_NaN:
         df[col].fillna('Na', inplace = True)
 
     clean_col(df, ["Observed Attendance", 'No Unscheduled Meetings', "Candidate Job Location", 
-                    "Location", 'Permissions', 'Alternate Phone Number', 'Call Letter Shared', '3 Hour Confirmation Call', 'Took Resume, Read JD',
+                    "Location", 'Permissions', 'Alternate Phone Number', 'Call Letter Shared', '3 Hour Confirmation Call', 'Took Resume and Read JD',
                     'Confirmed Location'])
     
     # If Not sure or NA is provided, grouped into No for boolean values - may reconsider adding third "Unknown" entry later
@@ -98,7 +101,7 @@ def df_col_setup(df):
                     ('Alternate Phone Number', 'yes'),
                     ('3 Hour Confirmation Call', 'yes'),
                     ('Call Letter Shared', 'yes'),
-                    ('Took Resume, Read JD', 'yes'),
+                    ('Took Resume and Read JD', 'yes'),
                     ('Confirmed Location', 'yes')
                     ]
     for col, def_1 in cols_to_bool:
@@ -156,7 +159,7 @@ def mlp_model(num_neur_hid = 10, num_epochs = 500):
     df_y = pd.read_csv("../data/onehot_y.csv",index_col="Unnamed: 0")
     # Code to drop all columns:
     # df_X.drop(['Gender', 'Permissions', 'No Unscheduled Meetings', 
-    #       'Alternate Phone Number', 'Took Resume, Read JD', 'Confirmed Location', 
+    #       'Alternate Phone Number', 'Took Resume and Read JD', 'Confirmed Location', 
     #       'Call Letter Shared', 'Married', 'Local Candidate', '3 Hour Confirmation Call']
 
     X = df_X.to_numpy()
