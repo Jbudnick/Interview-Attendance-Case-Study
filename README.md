@@ -79,7 +79,9 @@ This leaves three features that were too large to one hot encode or had too many
 ### **Binary Features**
 Our first approach, we chose to keep all ten features:
 
-    Take Resume, Obtain Permission, No unschedules meetings, Locations match, confirmed location, alternative phone number, three hour call, call letter, gender, married
+    Take Resume, Obtain Permission, No unschedules meetings, 
+    Locations match, confirmed location, alternative phone number, 
+    three hour call, call letter, gender, married
 
 As we will discuss soon, using all the features provided marginally better results than when we reduced the feature count.
 
