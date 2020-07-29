@@ -4,22 +4,30 @@ Gender: 1 = Male, 0 = Female
 
 '''
 
-from dateparser import parse
-# Marc please run conda install dateparser in your terminal if this doesn't work
+import os
+import datetime
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import datetime
+from dateparser import parse
 from pandas.plotting import scatter_matrix
-import matplotlib.pyplot as plt
-from statsmodels.tools import add_constant
-from statsmodels.discrete.discrete_model import Logit
 from sklearn.datasets import make_classification
-from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold, train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.preprocessing import LabelEncoder
+from statsmodels.discrete.discrete_model import Logit
+from statsmodels.tools import add_constant
 from statsmodels.tools.tools import add_constant
+
+# comment out the tensorflow imports if you want to run without modeling
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import SGD
+
+
 
 def load_df():
     cols = np.arange(0,23)
@@ -40,24 +48,45 @@ def fix_date(df):
     df.loc[505:524, 'Date'] = parse('28.08.2016')
     break_down_date(df)
     return df
-def get_stacked_bars(df, x = 'dayofweek', y = 'Observed Attendance', order = None):
+
+def get_stacked_bars(df, x='dayofweek', y='Observed Attendance', order=None):
     specific_df = df.loc[:, [x, y, 'Date']]
     specific_df = specific_df.groupby([x, y]).count().reset_index()
-    specific_df.rename(columns = {'Date' : 'Count'}, inplace = True)
-    showDict = {0 : 'No Show', 1: 'Show'}
+    specific_df.rename(columns={'Date': 'Count'}, inplace=True)
+    showDict = {0: 'No Show', 1: 'Show'}
     specific_df[y] = specific_df[y].apply(lambda z: showDict[z])
 
-    pivot_df = specific_df.pivot(index= x, columns= y, values='Count')
+    pivot_df = specific_df.pivot(index=x, columns=y, values='Count')
+    pivot_df.fillna(0, inplace = True)
     if order == None:
         pivot_df = pivot_df.loc[:, ['Show', 'No Show']]
     else:
-        pivot_df = pivot_df.loc[order, ['Show', 'No Show']]
-    fig, axes = plt.subplots(1,2, figsize = (16, 7))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
+    pivot_df.plot.bar(stacked=True, color=[
+                      'blue', 'red'], figsize=(16, 7), ax=axes[0])
     pivot_df.plot.bar(stacked = True, color = ['blue', 'red'], figsize=(16,7), ax = axes[0])
 
-    pivot_df['percent show'] = round(100 * pivot_df['Show'] / (pivot_df['Show'] +  pivot_df['No Show']), 2)
-    pivot_df['percent no show'] = round(100 * pivot_df['No Show'] / (pivot_df['Show'] +  pivot_df['No Show']), 2)
-    pivot_df[['percent show', 'percent no show']].plot.bar(stacked=True, color = ['blue', 'red'], figsize=(16,7), ax = axes[1])
+    pivot_df['percent show'] = round(
+        100 * pivot_df['Show'] / (pivot_df['Show'] + pivot_df['No Show']), 2)
+    pivot_df['percent no show'] = round(
+        100 * pivot_df['No Show'] / (pivot_df['Show'] + pivot_df['No Show']), 2)
+    pivot_df[['percent show', 'percent no show']].plot.bar(
+        stacked=True, color=['blue', 'red'], figsize=(16, 7), ax=axes[1])
+
+    
+    if override_x != None:
+        x = override_x
+    axes[0].set_xlabel(x)
+    axes[0].set_ylabel('Count')
+    axes[0].set_title('{} Based on {}'.format(y, x))
+    
+    axes[1].set_xlabel(x)
+    axes[1].set_ylabel('%')
+
+    axes[1].set_title('Percent {} Based on {}'.format(y, x))
+    
+        df[col].replace(entry, combine_to, inplace=True)
+        fig.savefig('../images/{}.png'.format(x), dpi = 300)
 
 def break_down_date(df):
     df['Year'] = df['Date'].apply(lambda x: x.year)
@@ -117,6 +146,8 @@ def df_col_setup(df):
 
     #Combine redundant IT variations for Company into IT
     combine_types(df, col='Industry', other_entries=('IT Services', 'IT Products and Services'), combine_to = 'IT')
+    combine_types(df, col='Location', other_entries=(
+        'gurgaonr'), combine_to='gurgaon')
     create_local_col(df)
     fix_date(df)
 
@@ -154,34 +185,46 @@ def hot_encode():
     X = df.select_dtypes(exclude=['number']).apply(LabelEncoder().fit_transform).join(df.select_dtypes(include=['number']))
 
 
-def log_reg(df):
-    # taken from Logistic Regression Solutions Notebook
-    # https://github.com/GalvanizeDataScience/solutions-g114/blob/master/logistic-regression/logistic_regression_solutions.ipynb
-    X = df[['3hr_call', 'alt_phone', 'Married','is_local']].values
-    X_const = add_constant(X, prepend=True)
-    y = df['Observed Attendance'].values
+def mlp_model(num_neur_hid = 10, num_epochs = 500):
+    """ 
+    taken from Perceptron Lecture - 3_layer_keras.py
+    https://github.com/GalvanizeDataScience/lectures/blob/Denver/perceptrons/frank-burkholder/3_layer_keras.py
+    """
 
-    logit_model = Logit(y, X_const).fit()
+    df_X = pd.read_csv("../data/onehot_dataframe_notime.csv",index_col="Unnamed: 0")
+    df_y = pd.read_csv("../data/onehot_y.csv",index_col="Unnamed: 0")
+    # Code to drop all columns:
+    # df_X.drop(['Gender', 'Permissions', 'No_Unscheduled_Meetings', 
+    #       'alt_phone', 'Take_Resume', 'Confirmed_Location', 
+    #       'Call_Letter', 'Married', 'is_local', '3hr_call']
 
-    logit_model.summary()
+    X = df_X.to_numpy()
+    y = df_y.to_numpy()
+    
+    batch_size = X.shape[0] # using batch gradient descent
+    mlp = define_hl_mlp_model(X, num_neur_hid)
+    activ='sigmoid'
 
-    kfold = KFold(n_splits=5)
+    num_coef = X.shape[1]
+    model = Sequential() # sequential model is a linear stack of layers
+    model.add(Dense(units=num_neur_hid,
+                    input_shape=(num_coef,),
+                    activation=activ, 
+                    use_bias=True, 
+                    kernel_initializer='glorot_uniform', 
+                    bias_initializer='zeros', 
+                    kernel_regularizer=None, 
+                    bias_regularizer=None, 
+                    activity_regularizer=None, 
+                    kernel_constraint=None, 
+                    bias_constraint=None))
+    model.add(Dense(units=1,
+                    activation=activ, 
+                    use_bias=True, 
+                    kernel_initializer='glorot_uniform')) 
+    sgd = SGD(lr=1e-3, decay=1e-7, momentum=0.9) # using stochastic gradient descent
+    model.compile(loss="mean_squared_error", optimizer=sgd, metrics=["mse"] )
 
-    accuracies = []
-    precisions = []
-    recalls = []
-
-    # why splitting after fitting - leakage?
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
-
-    for train_index, test_index in kfold.split(X_train):
-        model = LogisticRegression(solver="lbfgs")
-        model.fit(X[train_index], y[train_index])
-        y_predict = model.predict(X[test_index])
-        y_true = y[test_index]
-        accuracies.append(accuracy_score(y_true, y_predict))
-        precisions.append(precision_score(y_true, y_predict))
-        recalls.append(recall_score(y_true, y_predict))
 
     print("Accuracy:", np.average(accuracies))
     print("Precision:", np.average(precisions))
@@ -216,21 +259,3 @@ if __name__ == "__main__":
     
 
     original_exp_attend = df.pop('Expected Attendance')
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
