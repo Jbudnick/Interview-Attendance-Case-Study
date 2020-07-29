@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="interview/images/header_image.jpg" width = 860>
+</p>
+
 # Predicting Interview Attendance
 
 *by Jacob and Marc*
@@ -6,7 +10,6 @@
 - [Introduction](#introduction)
   - [Background](#background)
   - [Case Study Goal](#case-study-goal)
-  - [Minimum Viable Product](#minimum-viable-product)
   - [Datasets](#datasets)
 - [Cross-validation](#cross-validation)
   - [Train-Test Split](#train-test-split)
@@ -28,6 +31,8 @@ Data sourced from Kaggle  (https://www.kaggle.com/vishnusraghavan/the-interview-
 ### **Case Study Goal**
 
 In this case study we will use non-parametric supervised learning models to create a predictive machine learning model. It may be interesting to compare non-parametric to parametric (linear/logistic regression) results.
+
+We will be comparing our results with the results of the authors of the dataset.
 
 ### **Datasets**  
 Since we are interested in predicting interview attendance we needed to use all information available to create a model capable of best predicting the outcome of whether or not a candidate will show up to the interview.
@@ -68,7 +73,7 @@ Factors that had more than two, but fewer than 10 possible answers were one hot 
 After some ...
  
 <p align="center">
-  <img src="../images/weekday_churn.png" width = 860>
+  <img src="..interview/images/weekday_churn.png" width = 860>
 </p>
  
 ### **Feature Categories**
@@ -91,21 +96,23 @@ In the following plots, the left side represents the total counts while the righ
   <img src="interview/images/Permissions.png" width = 400>
 </p>
 <p align="center">
-  <img src="interview/images/3hr_call.png" width = 400>
+  <img src="interview/images/3_Hour_Confirmation_Call.png" width = 400>
 </p>
 <p align="center">
-  <img src="interview/images/alt_phone.png" width = 400>
+  <img src="interview/images/Alternate_Phone_Number.png" width = 400>
 </p>
 
 
 The most useless features were Marital status and was Male vs Female where little to no predictive value was obtained.
- 
+
 <p align="center">
-  <img src="interview/images/Married.png" width = 300>
-  <img src="interview/images/Gender.png" width = 300>
+  <img src="interview/images/Married.png" width = 400>
+</p>
+<p align="center">
+  <img src="interview/images/Gender.png" width = 400>
 </p>
 
-Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status. Although significantly more men interviewed, the likelihood of each gender showing up to the interview was nearly identical.
+Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status. Although significantly more men interviewed, the likelihood of each gender showing up to the interview was nearly identical. Gender shows a similar situation where men represent a higher interview *count* but a nearly identical interview *rate*.
 
 #### **Time-base Features**
 
@@ -165,11 +172,13 @@ We started by building the simplest MLP consisting of ten binary input nodes, on
   <img src="interview/images/mlp.png" width = 400>
 </p>
 
+After training, we found this simple model to perform quite well.
+
 We began adding complexity to our model by changing the number of hidden layers and other hyper parameters with diminshing returns. The increase in computational time was not justified by the minimal increase training accuracy that we were observing.
 
 For our final model we compromised heavily towards simplicity and reducing computational expense at a cost of slightly lower accuracies.
 
-#### **Results**
+### **Results**
 
 When we tested our MLP model on unseen data, our prediction accuracy was 70% with all 10 features not including date/time and 67% with only one feature (3hr_call). While there is only a small decrease in performance with limiting the model to a single feature, if computational expense was of concern we could prioritize the limiting of feature count.
 
@@ -179,6 +188,8 @@ When compared to the Kaggle-dataset authors' naive bayes results, we did slightl
 
 
 ## **Citation**
+
+[Header Image](https://resources.workable.com/closing-interview-questions)
 This case study is based on [The Interview Attendance Problem](https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem).
 
 [MLP Image](https://texample.net/media/tikz/examples/PNG/neural-network.png)
