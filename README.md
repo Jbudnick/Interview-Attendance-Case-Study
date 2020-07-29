@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="interview/images/header_image.jpg" width = 860>
+  <img src="interview/images/header_image.jpg" width = 1000>
 </p>
 
 # Predicting Interview Attendance
@@ -12,7 +12,8 @@
   - [Case Study Goal](#case-study-goal)
   - [Datasets](#datasets)
 - [Exploratory Data Analysis](#exploratory-data-analysis)
-  - [Feature Categories](#feature-categories)
+  - [Binary Features](#binary-features)
+  - [Time-based Features](#Time-based-Features)
 - [Cross-validation](#cross-validation)
   - [Train-Test Split](#train-test-split)
 - [Learning Models](#learning-models)
@@ -71,15 +72,11 @@ Yes or No questions were converted to boolean. Unknown entries were assumed to b
 
 Factors that had more than two, but fewer than 10 possible answers were one hot encoded.
 
-After some ...
- 
-<p align="center">
-  <img src="..interview/images/weekday_churn.png" width = 860>
-</p>
- 
-### **Feature Categories**
+This leaves three features that were too large to one hot encode or had too many unique answers with very few responses:
 
-#### **Boolean Features**
+    Candidate native location, company, skillset
+
+### **Binary Features**
 Our first approach, we chose to keep all ten features:
 
     Take Resume, Obtain Permission, No unschedules meetings, Locations match, confirmed location, alternative phone number, three hour call, call letter, gender, married
@@ -94,37 +91,36 @@ In the following plots, the left side represents the total counts while the righ
 
 
 <p align="center">
-  <img src="interview/images/Permissions.png" width = 800>
+  <img src="interview/images/Permissions.png" width = 900>
 </p>
 <p align="center">
-  <img src="interview/images/3_Hour_Confirmation_Call.png" width = 800>
+  <img src="interview/images/3_Hour_Confirmation_Call.png" width = 900>
 </p>
 <p align="center">
-  <img src="interview/images/Alternate_Phone_Number.png" width = 800>
+  <img src="interview/images/Alternate_Phone_Number.png" width = 900>
 </p>
 
-
-The most useless features were Marital status and was Male vs Female where little to no predictive value was obtained.
+The most useless features were Marital status and Male vs Female where little to no predictive value was obtained.
 
 <p align="center">
-  <img src="interview/images/Married.png" width = 800>
+  <img src="interview/images/Married.png" width = 900>
 </p>
 <p align="center">
-  <img src="interview/images/Gender.png" width = 800>
+  <img src="interview/images/Gender.png" width = 900>
 </p>
 
 Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status. Although significantly more men interviewed, the likelihood of each gender showing up to the interview was nearly identical. Gender shows a similar situation where men represent a higher interview *count* but a nearly identical interview *rate*.
 
-#### **Time-base Features**
+### **Time-based Features**
 
-We wanted to analyze how interview dates and times effected attendance rates. To do this we needed to disect the date column into a more workable form. 
-## **** Expand on this section about DATETIME Package (if you want to)
-We used a python package called datetime which allowed us to analyze the interview attendance rates on a daily, weekly, and monthly basis.
+We wanted to analyze how interview dates affected attendance rates. To do this we needed to disect the date column into a more workable form. 
 
-We thought that there would be certain days of the week that would produce significantly more or less attendance rates (especially Monday/Friday)
+We used a python package called datetime which allowed us to analyze the interview attendance rates on a daily, weekly, and monthly basis. We also installed the dateparser library which contained the parse function, which was able to take nearly all formats of the dates entered in the raw data and convert them into a usable datetime object. Only a few values had to manually corrected.
+
+We split the date columns into 4 different columns: Year, Month, Day, and Day of Week. We thought that there would be certain days of the week that would produce significantly more or less attendance rates (especially Monday/Friday). 
 
 <p align="center">
-  <img src="interview/images/Day_of_Week.png" width = 800>
+  <img src="interview/images/Day_of_Week.png" width = 900>
 </p>
 
 As you can see above, there is little to no correlation between day of the week and attendance rates. Despite this there is a significantly higher number of interviews (both attended and unattended) on Fridays.
@@ -132,7 +128,7 @@ As you can see above, there is little to no correlation between day of the week 
 Next we wanted to look at the relationship between day of the month and attendance rates. We suspected that there might be an increase in interview counts towards the end of the month (as a result of bills).
 
 <p align="center">
-  <img src="interview/images/Day_of_Month.png" width = 800>
+  <img src="interview/images/Day.png" width = 900>
 </p>
 
 Notice above how the attendance for days of the month seem to not follow any noticable trends. This, again, pushed us to not include this feature in our machine learning model.
@@ -140,10 +136,18 @@ Notice above how the attendance for days of the month seem to not follow any not
 We continued the date-time analysis with a study on how attendance rates change in relation to the months of the year. We conducted some research into Indian holidays but when comparing with the plot we did not see much alignment.
 
 <p align="center">
-  <img src="interview/images/Month_of_Year.png" width = 800>
+  <img src="interview/images/Month.png" width = 900>
 </p>
 
 Again, notice how in the above plot there is little if any correlation between attendance rates and months of the year.
+
+We next wanted to look at how observed attendance changes on a yearly basis
+
+<p align="center">
+  <img src="interview/images/Year.png" width = 900>
+</p>
+
+Previous analysis of days and months could be scewed by what we observe in the above plot. Since the interview data starts partially through 2015, certain months will be have data from both years while other months may only consist of data from a single year. This shows the importance of the "Percent Observed Attendance" which ignores overall counts and scales appropriately.
 
 ## **Cross-validation**
 
@@ -166,7 +170,7 @@ We thought it would be a good approach to try a random forest because random for
 We started by building the simplest MLP consisting of ten binary input nodes, one hidden layer, and a single output node for predicted attendance. Below is an illustration that shows the simple model architecture (with only four inputs instead of ten)
 
 <p align="center">
-  <img src="interview/images/mlp.png" width = 800>
+  <img src="interview/images/mlp.png" width = 900>
 </p>
 
 After training, we found this simple model to perform quite well.
@@ -175,7 +179,7 @@ We began adding complexity to our model by changing the number of hidden layers 
 
 For our final model we compromised heavily towards simplicity and reducing computational expense at a cost of slightly lower accuracies.
 
-### **Results**
+## **Results**
 
 Our best performing model was a random forest?Multi-Layer Perception?
 
@@ -188,7 +192,8 @@ When compared to the Kaggle-dataset authors' naive bayes results, we did slightl
 
 ## **Citation**
 
-[Header Image](https://resources.workable.com/closing-interview-questions)
 This case study is based on [The Interview Attendance Problem](https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem).
 
 [MLP Image](https://texample.net/media/tikz/examples/PNG/neural-network.png)
+
+[Header Image](https://resources.workable.com/closing-interview-questions)
