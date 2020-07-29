@@ -214,27 +214,6 @@ if __name__ == "__main__":
                 get_stacked_bars(df, x=col, y='Observed Attendance')
             except:
                 continue
-
-
-    # for bool_col in ["Gender"]:
-    #     col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
-    #     if (col1y_col2y + col1y_col2n == 0):
-    #         attend_ratio_col1 = col1y_col2y / 0.0001
-    #     else: 
-    #         attend_ratio_col1 = col1y_col2y / (col1y_col2y + col1y_col2n)
-    #     if (col1y_col2y + col1y_col2n) == 0:
-    #         attend_ratio_col2 = col1n_col2y / 0.0001
-    #     else:
-    #         attend_ratio_col2 = col1n_col2y / (col1n_col2y + col1n_col2n)
-            
-    #     fig, ax = plt.subplots(figsize = (12,8))
-
-    #     not_label = 'not ' + str(bool_col)
-    #     ax.bar(x = [bool_col, not_label], height = [attend_ratio_col1, attend_ratio_col2])
-        
-    #     file_name = "../images/" + str(bool_col) + "_ratio.png"
-    #     ax.set_ylabel("Attendance Ratio (Attend vs Not Attend)")
-    #     plt.savefig(file_name)
-    
+  
 
     original_exp_attend = df.pop('Expected Attendance')

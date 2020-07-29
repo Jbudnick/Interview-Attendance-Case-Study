@@ -52,11 +52,11 @@ def get_stacked_bars(df, x='Day of Week', y='Observed Attendance', override_x = 
     axes[0].set_xlabel(x)
     axes[0].tick_params(axis='x', rotation=45)
     axes[0].set_ylabel('Count')
-    axes[0].set_title('{} Based on {}'.format(y, x))
+    axes[0].set_title('{} Based on\n {}'.format(y, x))
     axes[1].set_xlabel(x)
     axes[1].set_ylabel('%') 
     axes[1].tick_params(axis='x', rotation=45)
-    axes[1].set_title('Percent {} Based on {}'.format(y, x))
+    axes[1].set_title('Percent {} Based on\n {}'.format(y, x))
 
     x = x.replace(' ', '_')
     fig.tight_layout()
