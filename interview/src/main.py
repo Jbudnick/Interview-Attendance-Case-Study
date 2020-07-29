@@ -27,7 +27,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 
-
+from plot_creator import get_stacked_bars
 
 def load_df():
     cols = np.arange(0,23)
@@ -48,45 +48,6 @@ def fix_date(df):
     df.loc[505:524, 'Date'] = parse('28.08.2016')
     break_down_date(df)
     return df
-
-def get_stacked_bars(df, x='dayofweek', y='Observed Attendance', order=None):
-    specific_df = df.loc[:, [x, y, 'Date']]
-    specific_df = specific_df.groupby([x, y]).count().reset_index()
-    specific_df.rename(columns={'Date': 'Count'}, inplace=True)
-    showDict = {0: 'No Show', 1: 'Show'}
-    specific_df[y] = specific_df[y].apply(lambda z: showDict[z])
-
-    pivot_df = specific_df.pivot(index=x, columns=y, values='Count')
-    pivot_df.fillna(0, inplace = True)
-    if order == None:
-        pivot_df = pivot_df.loc[:, ['Show', 'No Show']]
-    else:
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
-    pivot_df.plot.bar(stacked=True, color=[
-                      'blue', 'red'], figsize=(16, 7), ax=axes[0])
-    pivot_df.plot.bar(stacked = True, color = ['blue', 'red'], figsize=(16,7), ax = axes[0])
-
-    pivot_df['percent show'] = round(
-        100 * pivot_df['Show'] / (pivot_df['Show'] + pivot_df['No Show']), 2)
-    pivot_df['percent no show'] = round(
-        100 * pivot_df['No Show'] / (pivot_df['Show'] + pivot_df['No Show']), 2)
-    pivot_df[['percent show', 'percent no show']].plot.bar(
-        stacked=True, color=['blue', 'red'], figsize=(16, 7), ax=axes[1])
-
-    
-    if override_x != None:
-        x = override_x
-    axes[0].set_xlabel(x)
-    axes[0].set_ylabel('Count')
-    axes[0].set_title('{} Based on {}'.format(y, x))
-    
-    axes[1].set_xlabel(x)
-    axes[1].set_ylabel('%')
-
-    axes[1].set_title('Percent {} Based on {}'.format(y, x))
-    
-        df[col].replace(entry, combine_to, inplace=True)
-        fig.savefig('../images/{}.png'.format(x), dpi = 300)
 
 def break_down_date(df):
     df['Year'] = df['Date'].apply(lambda x: x.year)
@@ -109,36 +70,36 @@ def df_col_setup(df):
         'Position to be closed': 'Position',
         'Nature of Skillset': 'Skillset',
         "Have you obtained the necessary permission to start at the required time": "Permissions",
-        'Hope there will be no unscheduled meetings': 'No_Unscheduled_Meetings',
-        "Can I Call you three hours before the interview and follow up on your attendance for the interview": '3hr_call',
-        "Can I have an alternative number/ desk number. I assure you that I will not trouble you too much": "alt_phone",
-        'Have you taken a printout of your updated resume. Have you read the JD and understood the same': "Take_Resume",
-        'Are you clear with the venue details and the landmark.' : 'Confirmed_Location',
-        'Has the call letter been shared' : 'Call_Letter',
+        'Hope there will be no unscheduled meetings': 'No Unscheduled Meetings',
+        "Can I Call you three hours before the interview and follow up on your attendance for the interview": '3 Hour Confirmation Call',
+        "Can I have an alternative number/ desk number. I assure you that I will not trouble you too much": "Alternate Phone Number",
+        'Have you taken a printout of your updated resume. Have you read the JD and understood the same': "Took Resume, Read JD",
+        'Are you clear with the venue details and the landmark.' : 'Confirmed Location',
+        'Has the call letter been shared' : 'Call Letter Shared',
         'Marital Status' : 'Married'
     }
 
     df.rename(columns = col_rename_dict, inplace = True)
-    cols_with_NaN = ['No_Unscheduled_Meetings', 'Permissions',
-                     'alt_phone', 'Take_Resume', 'Confirmed_Location', 'Call_Letter', '3hr_call']
+    cols_with_NaN = ['No Unscheduled Meetings', 'Permissions',
+                     'Alternate Phone Number', 'Took Resume, Read JD', 'Confirmed Location', 'Call Letter Shared', '3 Hour Confirmation Call']
     for col in cols_with_NaN:
         df[col].fillna('Na', inplace = True)
 
-    clean_col(df, ["Observed Attendance", 'No_Unscheduled_Meetings', "Candidate Job Location", 
-                    "Location", 'Permissions', 'alt_phone', 'Call_Letter', '3hr_call', 'Take_Resume',
-                    'Confirmed_Location'])
+    clean_col(df, ["Observed Attendance", 'No Unscheduled Meetings', "Candidate Job Location", 
+                    "Location", 'Permissions', 'Alternate Phone Number', 'Call Letter Shared', '3 Hour Confirmation Call', 'Took Resume, Read JD',
+                    'Confirmed Location'])
     
     # If Not sure or NA is provided, grouped into No for boolean values - may reconsider adding third "Unknown" entry later
     cols_to_bool = [('Observed Attendance', 'yes'),
                     ('Married', 'Married'), 
                     ('Gender', 'Male'),
-                    ('No_Unscheduled_Meetings', 'yes'),
+                    ('No Unscheduled Meetings', 'yes'),
                     ('Permissions', 'yes'),
-                    ('alt_phone', 'yes'),
-                    ('3hr_call', 'yes'),
-                    ('Call_Letter', 'yes'),
-                    ('Take_Resume', 'yes'),
-                    ('Confirmed_Location', 'yes')
+                    ('Alternate Phone Number', 'yes'),
+                    ('3 Hour Confirmation Call', 'yes'),
+                    ('Call Letter Shared', 'yes'),
+                    ('Took Resume, Read JD', 'yes'),
+                    ('Confirmed Location', 'yes')
                     ]
     for col, def_1 in cols_to_bool:
         convert_to_boolean(df, col, def_1)
@@ -166,12 +127,12 @@ def clean_col(df, cols):
     return df
 
 def create_local_col(df):
-    df["is_local"] = -1
+    df["Local Candidate"] = -1
     for i in range(df.shape[0]):
         if df["Location"][i] == df["Candidate Job Location"][i]:
-            df.loc[i, "is_local"] = 1
+            df.loc[i, "Local Candidate"] = 1
         else:
-            df.loc[i, "is_local"] = 0
+            df.loc[i, "Local Candidate"] = 0
 
 def compare_bools(df, col1, col2):
     col1y_col2y = df[(df[col1] == 1) & (df[col2] == 1)].shape[0]
@@ -194,9 +155,9 @@ def mlp_model(num_neur_hid = 10, num_epochs = 500):
     df_X = pd.read_csv("../data/onehot_dataframe_notime.csv",index_col="Unnamed: 0")
     df_y = pd.read_csv("../data/onehot_y.csv",index_col="Unnamed: 0")
     # Code to drop all columns:
-    # df_X.drop(['Gender', 'Permissions', 'No_Unscheduled_Meetings', 
-    #       'alt_phone', 'Take_Resume', 'Confirmed_Location', 
-    #       'Call_Letter', 'Married', 'is_local', '3hr_call']
+    # df_X.drop(['Gender', 'Permissions', 'No Unscheduled Meetings', 
+    #       'Alternate Phone Number', 'Took Resume, Read JD', 'Confirmed Location', 
+    #       'Call Letter Shared', 'Married', 'Local Candidate', '3 Hour Confirmation Call']
 
     X = df_X.to_numpy()
     y = df_y.to_numpy()
@@ -234,28 +195,37 @@ def mlp_model(num_neur_hid = 10, num_epochs = 500):
 if __name__ == "__main__":
     df = load_df()
     df_col_setup(df)
+    create_plots = True
+
+    if create_plots == True:
+        for col in df.columns:
+            try:
+                get_stacked_bars(df, x=col, y='Observed Attendance')
+            except:
+                continue
+
 
     # log_reg(df)
 
-    # for bool_col in ['is_local', '3hr_call', 'alt_phone', 'Permissions', 'Married']:
-    #     col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
-    #     if (col1y_col2y + col1y_col2n == 0):
-    #         attend_ratio_col1 = col1y_col2y / 0.0001
-    #     else: 
-    #         attend_ratio_col1 = col1y_col2y / (col1y_col2y + col1y_col2n)
-    #     if (col1y_col2y + col1y_col2n) == 0:
-    #         attend_ratio_col2 = col1n_col2y / 0.0001
-    #     else:
-    #         attend_ratio_col2 = col1n_col2y / (col1n_col2y + col1n_col2n)
+    for bool_col in ["Gender"]:
+        col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
+        if (col1y_col2y + col1y_col2n == 0):
+            attend_ratio_col1 = col1y_col2y / 0.0001
+        else: 
+            attend_ratio_col1 = col1y_col2y / (col1y_col2y + col1y_col2n)
+        if (col1y_col2y + col1y_col2n) == 0:
+            attend_ratio_col2 = col1n_col2y / 0.0001
+        else:
+            attend_ratio_col2 = col1n_col2y / (col1n_col2y + col1n_col2n)
             
-    #     fig, ax = plt.subplots(figsize = (12,8))
+        fig, ax = plt.subplots(figsize = (12,8))
 
-    #     not_label = 'not ' + str(bool_col)
-    #     ax.bar(x = [bool_col, not_label], height = [attend_ratio_col1, attend_ratio_col2])
+        not_label = 'not ' + str(bool_col)
+        ax.bar(x = [bool_col, not_label], height = [attend_ratio_col1, attend_ratio_col2])
         
-    #     file_name = "../images/" + str(bool_col) + "_ratio.png"
-    #     ax.set_ylabel("Attendance Ratio (Attend vs Not Attend)")
-    #     plt.savefig(file_name)
+        file_name = "../images/" + str(bool_col) + "_ratio.png"
+        ax.set_ylabel("Attendance Ratio (Attend vs Not Attend)")
+        plt.savefig(file_name)
     
 
     original_exp_attend = df.pop('Expected Attendance')

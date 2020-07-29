@@ -1,17 +1,6 @@
-# Talking Points PLEASE REMOVE BEFORE PRESENTATION
-- talk about eda
-   -  feature selection
-   -  one hot encode
-- descision to use random forest
-   -  good accuracy
-- feature importance plot
-- how forest performed on data
-# Talking Points PLEASE REMOVE BEFORE PRESENTATION
+# Predicting Interview Attendance
 
-
-# Supervised Learning Case Study
-
-*by Connor, Cam, Joe, and Marc*
+*by Jacob and Marc*
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -32,54 +21,51 @@
 ## **Introduction**
 
 ### **Background**
-A ride-sharing company (Company X) is interested in predicting rider retention. To help explore this question, we have provided a sample dataset of a cohort of users who signed up for an account in January 2014. The data was pulled on July 1, 2014; we consider a user retained if they were “active” (i.e. took a trip) in the preceding 30 days (from the day the data was pulled). In other words, a user is "active" if they have taken a trip since June 1, 2014. The data, churn.csv, is in the data folder. The data are split into train and test sets. You are encouraged to tune and estimate your model's performance on the train set, then see how it does on the unseen data in the test set at the end.
+A recruitment industry in India is interested in predicting whether candidates will show up to an interview for various clients. Naive Bayes has already been attempted, and has shown decent results. We would like to know if we can better predict using other algorithms, feature engineer new variables, or modify the present set of variables to yield better results.
+
+Data sourced from Kaggle  (https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem)
 
 ### **Case Study Goal**
 
-*What factors are the best predictors for retention*
-
 In this case study we will use non-parametric supervised learning models to create a predictive machine learning model. It may be interesting to compare non-parametric to parametric (linear/logistic regression) results.
 
-### **Minimum Viable Product**
-
-**MVP**   : EDA, Describe our random forest classifier 
-
-**MVP +** :
-
-**MVP + +** : Compare non-parametric learning models to parametric ones
-
-
-
 ### **Datasets**  
-Since we are interested in predicting retention we needed to determine wether or not a user is still active. We did this by checking if a user had taken a trip in the last month (from the day this data was pulled).
+Since we are interested in predicting interview attendance we needed to use all information available to create a model capable of best predicting the outcome of whether or not a candidate will show up to the interview.
 
-- `city`: city this user signed up in phone: primary device for this user
-- `signup_date`: date of account registration; in the form `YYYYMMDD`
-- `last_trip_date`: the last time this user completed a trip; in the form `YYYYMMDD`
-- `avg_dist`: the average distance (in miles) per trip taken in the first 30 days after signup
-- `avg_rating_by_driver`: the rider’s average rating over all of their trips 
-- `avg_rating_of_driver`: the rider’s average rating of their drivers over all of their trips 
-- `surge_pct`: the percent of trips taken with surge multiplier > 1 
-- `avg_surge`: The average surge multiplier over all of this user’s trips 
-- `trips_in_first_30_days`: the number of trips this user took in the first 30 days after signing up 
-- `luxury_car_user`: TRUE if the user took a luxury car in their first 30 days; FALSE otherwise 
-- `weekday_pct`: the percent of the user’s trips occurring during a weekday
+- Date of Interview: Split Into Year, Day of week, and Month to investigate trends
+- Client Name: Company hosting interview
+- Industry: Type of industry of Client/Company
+- Location: Location of candidate
+- Position to be closed: Type of position (Niche refers to rare skill sets, routine refers to common skill sets) 
+- Nature of Skillset: Client skills
+- Interview Type: 3 Types: Walkin drives (unscheduled), Scheduled, Scheduled walkin
+- Name: Identical to index, number of candidate used to conceal identity
+- Gender
+- Candidate Current Location: Redundant with Location
+- Candidate Native location
+- Marital Status
+- Interview Venue	
 
+Factors of Interview Scheduling - These questions were asked and the candidates response is recorded:
+ - Have you obtained the necessary permission to start at the required time?
+ - Hope there will be no unscheduled meetings	Can I Call you three hours before the interview and follow up on your attendance for the interview?
+ - 	Can I have an alternative number/ desk number?
+ - 	Have you taken a printout of your updated resume? 
+ -  Have you read the JD?
+ -  Are you clear with the venue details and the landmark?	
+ -  Has the call letter been shared?
+
+Test/Target Variables:
+ -  Expected Attendance (Based on current prediction metrics)	
+ -  Observed Attendance: Target variable, whether or not candidate attended interview
 
 ## **Exploratory Data Analysis**
-After some inital EDA we saw correlation between 'surge_pct' and 'avg_surge' so we decided to drop 'surge_pct'. We also noticed that drivers were almost always rating their passengers highly and determined that had little impact on retention. 
 
-We originally one hot encoded the 3 different cities. After looking at some graphs and correlation values we notied that King's landing had a lower churn rate to the other cities.  
+Yes or No questions were converted to boolean. Unknown entries were assumed to be no.
 
-(city_churn.png)
+Factors that had more than two, but fewer than 10 possible answers were one hot encoded.
 
-Again looking at users phone OS we saw differences between Android and iPhone users. 
-(phoe_churn.png)
-encoding
-correlations between android/iphone, winterfell/asaporn/stormwind
-trips in the first 30 and luxury cars
-non raters
-outliers
+After some ...
  
 <p align="center">
   <img src="../images/weekday_churn.png" width = 860>
@@ -89,20 +75,44 @@ outliers
 
 #### **First Selection** 
 
-Our first approach at selecting relevant and useful metrics was to 'eye-ball' the 37x37 scatter matrix. Along with this we carefully studied the column documentation dictionaries to find metrics that we thought would be useful. Below we've listed our results of seven metrics:
+Our first approach, we chose to keep all ten features:
 
-      'SA_fac','HIVprevalence','Population','drugdeaths', 'mme_percap','MSM12MTH', 'household_income' 
+    Take Resume, Obtain Permission, No unschedules meetings, Locations match, confirmed location, alternative phone number, three hour call, call letter, gender, married
+
+As we will discuss soon, using all the features provided marginally better results than when we reduced the feature count.
+
+Our second approach limited the useful metrics to the following three:
+
+    Location match, 3hr Call, Alternative phone
+
+In the following plots, the left side represents the total counts while the right scales the counts to the top of the plot allowing us to see differences in ratio.
+
 
 <p align="center">
-  <img src="img/scatter_matrix_first_selection.png" width = 750>
-  <img src="img/ols_summary_first_selection.png" width = 600>
+  <img src="interview/images/Permissions.png" width = 400>
 </p>
+<p align="center">
+  <img src="interview/images/3hr_call.png" width = 400>
+</p>
+<p align="center">
+  <img src="interview/images/alt_phone.png" width = 400>
+</p>
+
+
+The most useless features were Marrital status and was Male vs Female where little to no predictive value was obtained.
+ 
+<p align="center">
+  <img src="interview/images/Married.png" width = 300>
+  <img src="interview/images/Gender.png" width = 300>
+</p>
+
+Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status.
 
 ## **Cross-validation**
 
 ### **Train-Test Split**
 
-The `churn_train.csv` and `churn_test.csv` files are an 80:20 train-test-split of the `churn.csv` data.  For some friendly competition, students should only use the `churn_train.csv` file for model and hyperparameter selection, and then at the end of the day see how they do on the unseen `churn_test.csv.`
+The data was split using a conventional 80/20 split where the training data consisted of 80% of the full dataset while we held out 20% of the data to test our final model on.
 
 <p align="center">
   <img src="img/kfolds.png" width = 600>
@@ -110,9 +120,17 @@ The `churn_train.csv` and `churn_test.csv` files are an 80:20 train-test-split o
 
 ## **Learning Models**
 
+### **Logistic Regression** ##
+
+Our first attempt was to try to fit the data using logistic regression, since our target variable is binary (Attended or did not attend)
+
 ### **Random Forests**
 
-We thought it would be a good approach to use a random forest because...
+We thought it would be a good approach to try a random forest because random forests work well with large datasets with many features and are unlikely to overfit the data.
+
+### **Multilayer Perceptron**
+
+
 
 #### **Training**
 Our first approach 
@@ -127,7 +145,7 @@ When we tested on unseen data, our results were: prediction accuracy was...
 
 
 ## **Citation**
-This case study is based on [Supervised Learning Case-Study-Ride-Share](https://github.com/GalvanizeDataScience/supervised-learning-case-study/tree/Denver/ride-share).  
+This case study is based on [The Interview Attendance Problem](https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem).  
 
 
 
