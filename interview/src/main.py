@@ -44,20 +44,24 @@ def fix_date(df):
     '''
     Replaces Na dates
     '''
-    default_date = '2000-1-1'
+    default_date = datetime.date(2000, 1, 1)
     Na_indices = df[df['Date'] == 'Na'].index
     df.loc[Na_indices, 'Date'] = default_date
     df['Date'] = df['Date'].apply(parse)
     df.loc[505:524, 'Date'] = parse('28.08.2016')
-    break_down_date(df)
+    break_down_date(df, default_date)
     return df
 
-def break_down_date(df):
-    df['Year'] = df['Date'].apply(lambda x: x.year)
-    df['Month'] = df['Date'].apply(lambda x: x.month)
-    df['Day'] = df['Date'].apply(lambda x: x.day)
+def break_down_date(df, default_date, min_year = 2015, max_year = 2016):
+    df['Year'] = df.loc[df['Date'] > default_date, 'Date'].apply(lambda x: x.year)
+    df.loc[(df['Year'] < min_year) | (df['Year'] > max_year), 'Year'] = 'Unknown'
+    df['Month'] = df.loc[df['Date'] > default_date,
+                        'Date'].apply(lambda x: x.month)
+    df['Day'] = df.loc[df['Date'] > default_date,
+                         'Date'].apply(lambda x: x.day)
     #0 is Monday
     df['Day of Week'] = df['Date'].apply(lambda x: x.dayofweek)
+    df.loc[:, ['Year', 'Month', 'Day']].fillna('Unknown', inplace = True)
     return df
 
 def combine_types(df, col, other_entries, combine_to):
@@ -84,7 +88,7 @@ def df_col_setup(df):
 
     df.rename(columns = col_rename_dict, inplace = True)
     cols_with_NaN = ['No Unscheduled Meetings', 'Permissions',
-                     'Alternate Phone Number', 'Took Resume and Read JD', 'Confirmed Location', 'Call Letter Shared', '3 Hour Confirmation Call']
+                     'Alternate Phone Number', 'Took Resume and Read JD', 'Confirmed Location', 'Call Letter Shared', '3 Hour Confirmation Call', 'Expected Attendance']
     for col in cols_with_NaN:
         df[col].fillna('Na', inplace = True)
 
@@ -112,6 +116,12 @@ def df_col_setup(df):
     combine_types(df, col='Industry', other_entries=('IT Services', 'IT Products and Services'), combine_to = 'IT')
     combine_types(df, col='Location', other_entries=(
         'gurgaonr'), combine_to='gurgaon')
+    combine_types(df, 'Expected Attendance', ['NO', 'Uncertain', 'Na'], 'No')
+    combine_types(df, 'Expected Attendance', ['yes', '10.30 Am', '11:00 AM'], 'Yes')
+    combine_types(df, 'Interview Type', ['Walkin', 'Walkin '], 'Walk In')
+    combine_types(df, 'Interview Type', ['Scheduled Walkin', 'Sceduled walkin'], 'Scheduled Walk In')
+    for col in ['Location', 'Candidate Job Location', 'Interview Venue']:
+        df[col] = df[col].apply(lambda x: x.title())
     create_local_col(df)
     fix_date(df)
 
@@ -150,28 +160,23 @@ def hot_encode():
 
 
 def mlp_model(num_neur_hid = 10, num_epochs = 500):
-    """ 
-    taken from Perceptron Lecture - 3_layer_keras.py
-    https://github.com/GalvanizeDataScience/lectures/blob/Denver/perceptrons/frank-burkholder/3_layer_keras.py
-    """
-
     df_X = pd.read_csv("../data/onehot_dataframe_notime.csv",index_col="Unnamed: 0")
     df_y = pd.read_csv("../data/onehot_y.csv",index_col="Unnamed: 0")
-    # Code to drop all columns:
-    # df_X.drop(['Gender', 'Permissions', 'No Unscheduled Meetings', 
-    #       'Alternate Phone Number', 'Took Resume and Read JD', 'Confirmed Location', 
-    #       'Call Letter Shared', 'Married', 'Local Candidate', '3 Hour Confirmation Call']
-
+    # df_X.drop(['Gender', 'Permissions', 'No_Unscheduled_Meetings', 
+            # 'alt_phone', 'Take_Resume', 'Confirmed_Location', 
+            # 'Call_Letter', 'Married', 'is_local'],
+            # axis = 1, inplace=True)
     X = df_X.to_numpy()
     y = df_y.to_numpy()
-    
+    nn_hl = 4 # number of neurons in the hidden layer
+    num_epochs = 500 # number of times to train on the entire training set
     batch_size = X.shape[0] # using batch gradient descent
-    mlp = define_hl_mlp_model(X, num_neur_hid)
+    mlp = define_hl_mlp_model(X, nn_hl)
     activ='sigmoid'
 
     num_coef = X.shape[1]
     model = Sequential() # sequential model is a linear stack of layers
-    model.add(Dense(units=num_neur_hid,
+    model.add(Dense(units=nn_hl,
                     input_shape=(num_coef,),
                     activation=activ, 
                     use_bias=True, 
@@ -189,10 +194,13 @@ def mlp_model(num_neur_hid = 10, num_epochs = 500):
     sgd = SGD(lr=1e-3, decay=1e-7, momentum=0.9) # using stochastic gradient descent
     model.compile(loss="mean_squared_error", optimizer=sgd, metrics=["mse"] )
 
+    mlp.fit(X, y, batch_size=batch_size, epochs=num_epochs, verbose=1, shuffle=True)
+    y_pred = mlp.predict(X)
 
-    print("Accuracy:", np.average(accuracies))
-    print("Precision:", np.average(precisions))
-    print("Recall:", np.average(recalls))
+    for yp in y_pred:
+        yp[0] = int(round(yp[0]))
+
+    print("accuracy is: ", accuracy_score(y, y_pred))
 
 
 if __name__ == "__main__":
@@ -208,27 +216,25 @@ if __name__ == "__main__":
                 continue
 
 
-    # log_reg(df)
-
-    for bool_col in ["Gender"]:
-        col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
-        if (col1y_col2y + col1y_col2n == 0):
-            attend_ratio_col1 = col1y_col2y / 0.0001
-        else: 
-            attend_ratio_col1 = col1y_col2y / (col1y_col2y + col1y_col2n)
-        if (col1y_col2y + col1y_col2n) == 0:
-            attend_ratio_col2 = col1n_col2y / 0.0001
-        else:
-            attend_ratio_col2 = col1n_col2y / (col1n_col2y + col1n_col2n)
+    # for bool_col in ["Gender"]:
+    #     col1y_col2y, col1y_col2n, col1n_col2y, col1n_col2n = compare_bools(df, bool_col, 'Observed Attendance')
+    #     if (col1y_col2y + col1y_col2n == 0):
+    #         attend_ratio_col1 = col1y_col2y / 0.0001
+    #     else: 
+    #         attend_ratio_col1 = col1y_col2y / (col1y_col2y + col1y_col2n)
+    #     if (col1y_col2y + col1y_col2n) == 0:
+    #         attend_ratio_col2 = col1n_col2y / 0.0001
+    #     else:
+    #         attend_ratio_col2 = col1n_col2y / (col1n_col2y + col1n_col2n)
             
-        fig, ax = plt.subplots(figsize = (12,8))
+    #     fig, ax = plt.subplots(figsize = (12,8))
 
-        not_label = 'not ' + str(bool_col)
-        ax.bar(x = [bool_col, not_label], height = [attend_ratio_col1, attend_ratio_col2])
+    #     not_label = 'not ' + str(bool_col)
+    #     ax.bar(x = [bool_col, not_label], height = [attend_ratio_col1, attend_ratio_col2])
         
-        file_name = "../images/" + str(bool_col) + "_ratio.png"
-        ax.set_ylabel("Attendance Ratio (Attend vs Not Attend)")
-        plt.savefig(file_name)
+    #     file_name = "../images/" + str(bool_col) + "_ratio.png"
+    #     ax.set_ylabel("Attendance Ratio (Attend vs Not Attend)")
+    #     plt.savefig(file_name)
     
 
     original_exp_attend = df.pop('Expected Attendance')

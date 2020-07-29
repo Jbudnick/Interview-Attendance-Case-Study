@@ -73,8 +73,7 @@ After some ...
  
 ### **Feature Categories**
 
-#### **First Selection** 
-
+#### **Boolean Features**
 Our first approach, we chose to keep all ten features:
 
     Take Resume, Obtain Permission, No unschedules meetings, Locations match, confirmed location, alternative phone number, three hour call, call letter, gender, married
@@ -99,14 +98,44 @@ In the following plots, the left side represents the total counts while the righ
 </p>
 
 
-The most useless features were Marrital status and was Male vs Female where little to no predictive value was obtained.
+The most useless features were Marital status and was Male vs Female where little to no predictive value was obtained.
  
 <p align="center">
   <img src="interview/images/Married.png" width = 300>
   <img src="interview/images/Gender.png" width = 300>
 </p>
 
-Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status.
+Notice how for marital status on the left plot, there are more non-married interviewing but when we scale the plot there is almost no difference between marrital status. Although significantly more men interviewed, the likelihood of each gender showing up to the interview was nearly identical.
+
+#### **Time-base Features**
+
+We wanted to analyze how interview dates and times effected attendance rates. To do this we needed to disect the date column into a more workable form. 
+## **** Expand on this section about DATETIME Package (if you want to)
+We used a python package called datetime which allowed us to analyze the interview attendance rates on a daily, weekly, and monthly basis.
+
+We thought that there would be certain days of the week that would produce significantly more or less attendance rates (especially Monday/Friday)
+
+<p align="center">
+  <img src="interview/images/Day_of_Week.png" width = 600>
+</p>
+
+As you can see above, there is little to no correlation between day of the week and attendance rates. Despite this there is a significantly higher number of interviews (both attended and unattended) on Fridays.
+
+Next we wanted to look at the relationship between day of the month and attendance rates. We suspected that there might be an increase in interview counts towards the end of the month (as a result of bills).
+
+<p align="center">
+  <img src="interview/images/Day_of_Month.png" width = 600>
+</p>
+
+Notice above how the attendance for days of the month seem to not follow any noticable trends. This, again, pushed us to not include this feature in our machine learning model.
+
+We continued the date-time analysis with a study on how attendance rates change in relation to the months of the year. We conducted some research into Indian holidays but when comparing with the plot we did not see much alignment.
+
+<p align="center">
+  <img src="interview/images/Month_of_Year.png" width = 600>
+</p>
+
+Again, notice how in the above plot there is little if any correlation between attendance rates and months of the year.
 
 ## **Cross-validation**
 
@@ -130,47 +159,26 @@ We thought it would be a good approach to try a random forest because random for
 
 ### **Multilayer Perceptron**
 
-
-
-#### **Training**
-Our first approach 
+We started by building the simplest MLP consisting of ten binary input nodes, one hidden layer, and a single output node for predicted attendance. Below is an illustration that shows the simple model architecture (with only four inputs instead of ten)
 
 <p align="center">
-  <img src="img/ols_summary_all.png" width = 600>
+  <img src="interview/images/mlp.png" width = 400>
 </p>
+
+We began adding complexity to our model by changing the number of hidden layers and other hyper parameters with diminshing returns. The increase in computational time was not justified by the minimal increase training accuracy that we were observing.
+
+For our final model we compromised heavily towards simplicity and reducing computational expense at a cost of slightly lower accuracies.
 
 #### **Results**
 
-When we tested on unseen data, our results were: prediction accuracy was...
+When we tested our MLP model on unseen data, our prediction accuracy was 70% with all 10 features not including date/time and 67% with only one feature (3hr_call). While there is only a small decrease in performance with limiting the model to a single feature, if computational expense was of concern we could prioritize the limiting of feature count.
+
+
+When compared to the Kaggle-dataset authors' naive bayes results, we did slightly worse. They created a model with an overall accuracy of 71% while ours was 70%
+
 
 
 ## **Citation**
-This case study is based on [The Interview Attendance Problem](https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem).  
+This case study is based on [The Interview Attendance Problem](https://www.kaggle.com/vishnusraghavan/the-interview-attendance-problem).
 
-
-
-
-  
-
-
-
-Near the end of the day you'll be asked to present capstone results from your project README.    
-Please present:  
-* Your problem statement  
-* A description of your data  
-* EDA and feature engineering  
-* Your modeling approach  
-* How you decided on your final model  
-* Model results on unseen data  
-* Relevance to the real world  
-* Areas for future work  
-
-Notes: 
-Be wary of data leakage - unwittingly providing more information about your target in your 
-dataset than would be available at the time of prediction.  Read more [here.](https://www.kaggle.com/dansbecker/data-leakage)
-
-To determine real-world relevance, you usually need to bring in your out-of-model knowledge to 
-quantify the cost-benefit of performance metrics.  Recall your profit-curve assignment!
-
-
-
+[MLP Image](https://texample.net/media/tikz/examples/PNG/neural-network.png)
