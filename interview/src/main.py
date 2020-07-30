@@ -211,22 +211,33 @@ if __name__ == "__main__":
     df_col_setup(df)
     create_plots = True
     get_random_forest = True
+    logistic_regression_analysis = True
 
-    if create_plots == True:
-        for col in df.columns:
-            try:
-                get_stacked_bars(df, x=col, y='Observed Attendance')
-            except:
-                continue
+    # if create_plots == True:
+    #     for col in df.columns:
+    #         try:
+    #             get_stacked_bars(df, x=col, y='Observed Attendance')
+    #         except:
+    #             continue
     
     if get_random_forest == True:
         rf_df = df.copy()
-        rf_df = rf_df.drop(['Date', 'Company', 'Industry', 'Location', 'Position', 'Skillset', 'Interview Type', 'Candidate Job Location', 'Interview Venue', 'Candidate Native location', 'Year', 'Month', 'Day', 'Day of Week'], axis = 1)
+        rf_df = rf_df.drop(['Date', 'Company', 'Industry', 'Location', 'Position', 'Skillset', 'Interview Type', 'Candidate Job Location', 'Interview Venue', 'Candidate Native location', 'Year', 'Month', 'Day', 'Day of Week', 'Expected Attendance'], axis = 1)
         y = rf_df.pop('Observed Attendance')
         X = rf_df
         rand_forest_model = reg_model(X, y)
         rand_forest_model.rand_forest()
         rand_forest_model.evaluate_model()
         rand_forest_model.get_feature_importances()
+    
+    if logistic_regression_analysis == True:
+        logreg_df = df.copy()
+        logreg_df = logreg_df.drop(['Date', 'Company', 'Industry', 'Location', 'Position', 'Skillset', 'Interview Type',
+                                    'Candidate Job Location', 'Interview Venue', 'Candidate Native location', 'Year', 'Month', 'Day', 'Day of Week'], axis=1)
+        y = logreg_df.pop('Observed Attendance')
+        X = logreg_df
+        logreg_model = reg_model(X, y)
+        logreg_model.log_reg()
+        logreg_model.evaluate_model()
 
     original_exp_attend = df.pop('Expected Attendance')

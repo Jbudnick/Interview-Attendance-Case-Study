@@ -60,4 +60,5 @@ def get_stacked_bars(df, x='Day of Week', y='Observed Attendance', override_x = 
 
     x = x.replace(' ', '_')
     fig.tight_layout()
+    fig.subplots_adjust(right=0.1)
     fig.savefig('../images/{}.png'.format(x), dpi=500)

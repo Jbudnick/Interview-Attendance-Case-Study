@@ -18,6 +18,9 @@ import matplotlib
 
 from matplotlib.dates import (DAILY, DateFormatter,
                               rrulewrapper, RRuleLocator, drange)
+plt.rcParams.update({'font.size': 16})
+plt.style.use('fivethirtyeight')
+plt.tight_layout()
 
 
 class reg_model(object):
@@ -37,6 +40,7 @@ class reg_model(object):
         '''
         Applies random forest to reg_model object.
         '''
+        self.model_type = 'Random Forest'
         if n_trees == 'optimize':
             '''
             If set to optimize, will take a selection of 1 to max_trees and uses number that minimizes error in training set.
@@ -59,6 +63,12 @@ class reg_model(object):
             int), self.y_train.values.astype(int).flatten())
         self.error_metric = 'rmse'
 
+    def log_reg(self):
+        self.model_type = 'Logistic Regression'
+        self.model = LogisticRegression()
+        self.model.fit(self.X_train.values.astype(
+            int), self.y_train.values.astype(int).flatten())
+
     def evaluate_model(self, print_err_metric=True):
         '''
         Determine validity of model on test set.
@@ -67,16 +77,21 @@ class reg_model(object):
         acc = accuracy_score(self.y_test.values.astype(int), self.y_hat)
         prec = precision_score(self.y_test.values.astype(int), self.y_hat)
         recall = recall_score(self.y_test.values.astype(int), self.y_hat)
-        print("Random Forest Accuracy: {}".format(acc))
-        print("Random Forest Precision: {}".format(prec))
-        print("Random Forest Recall: {}".format(recall))
+        print("{} Accuracy: {}".format(self.model_type, acc))
+        print("{} Precision: {}".format(self.model_type, prec))
+        print("{} Recall: {}".format(self.model_type, recall))
 
     def get_feature_importances(self):
         features = self.X_train.columns
-        imps = self.model.feature_importances_
+        if self.model_type == 'Random Forest':
+            imps = self.model.feature_importances_
+        elif self.model_type == 'Logistic Regression':
+            imps = self.model.coef_.flatten()          
         fig, ax = plt.subplots(1, 1, figsize=(16, 7))
+        fig.subplots_adjust(bottom=0.2)
         ax.bar(features, imps)
         ax.tick_params(axis='x', rotation=60)
         ax.set_ylabel('Feature Importance')
-        ax.set_title('Random Forest Feature Importances')
-        fig.savefig('../images/rf_feature_importances.png', dpi=500)
+        ax.set_title('{} Feature Importances'.format(self.model_type))
+        fig.tight_layout()
+        fig.savefig('../images/{}_feature_importances.png'.format(self.model_type, dpi = 500))

@@ -21,6 +21,9 @@
   - [Random Forests](#random-forests)
   - [Multi-Layer Perceptron](#multi-layer-perceptron-(MLP))
   - [Results](#results)
+- [Relevance to the Real World](#Relevance-to-the-Real-World)
+- [Conclusion](#conclusion)
+- [Future Steps for Improvement](#Future-Steps-for-Improvement)
 - [Citation](#citation)
 
 ## **Introduction**
@@ -54,23 +57,24 @@ Since we are interested in predicting interview attendance we needed to use all 
 - Interview Venue	
 
 Factors of Interview Scheduling - These questions were asked and the candidates response is recorded:
- - Have you obtained the necessary permission to start at the required time?
- - Hope there will be no unscheduled meetings	Can I Call you three hours before the interview and follow up on your attendance for the interview?
- - 	Can I have an alternative number/ desk number?
- - 	Have you taken a printout of your updated resume? 
- -  Have you read the JD?
- -  Are you clear with the venue details and the landmark?	
- -  Has the call letter been shared?
+ - Have you obtained the necessary permission to start at the required time?: Abbreviated to "Permissions"
+ - Hope there will be no unscheduled meetings	Can I Call you three hours before the interview and follow up on your attendance for the interview? : Renamed as "No Unscheduled Meetings"
+ - 	Can I have an alternative number/ desk number?: Renamed "Alternate Phone Number"
+ - 	Have you taken a printout of your updated resume? Have you read the JD?: Renamed "Took Resume and Read JD"
+ -  Are you clear with the venue details and the landmark?: Renamed "Confirmed Location"
+ -  Has the call letter been shared?: Renamed "Call Letter"
 
 Test/Target Variables:
  -  Expected Attendance (Based on current prediction metrics)	
  -  Observed Attendance: Target variable, whether or not candidate attended interview
 
+We created a new feature "Local Candidate" which is a boolean feature of whether or not the candidate location is the same as the job location.
+
 ## **Exploratory Data Analysis**
 
 Yes or No questions were converted to boolean. Unknown entries were assumed to be no.
 
-Factors that had more than two, but fewer than 10 possible answers were one hot encoded.
+Factors that had more than two, but only a few possibilities were one hot encoded.
 
 This leaves three features that were too large to one hot encode or had too many unique answers with very few responses:
 
@@ -149,7 +153,7 @@ We next wanted to look at how observed attendance changes on a yearly basis
   <img src="interview/images/Year.png" width = 1100>
 </p>
 
-Previous analysis of days and months could be scewed by what we observe in the above plot. Since the interview data starts partially through 2015, certain months will be have data from both years while other months may only consist of data from a single year. This shows the importance of the "Percent Observed Attendance" which ignores overall counts and scales appropriately.
+Previous analysis of days and months could be skewed by what we observe in the above plot. Since the interview data starts partially through 2015, certain months will be have data from both years while other months may only consist of data from a single year. This shows the importance of the "Percent Observed Attendance" which ignores overall counts and scales appropriately.
 
 ## **Cross-validation**
 
@@ -161,36 +165,62 @@ The data was split using a conventional 80/20 split where the training data cons
 
 ### **Logistic Regression**
 
-Our first attempt was to try to fit the data using logistic regression, since our target variable is binary (Attended or did not attend)
+Our first attempt was to try to fit the data using logistic regression, since our target variable is binary (Attended or did not attend). After training we found a test accuracy of 70%, which was very close, but not greater than the author's value of 70.8%. Precision score was 71.6%, and recall score was 84.6%.
 
 ### **Random Forests**
 
 We thought it would be a good approach to try a random forest because random forests work well with large datasets with many features and are unlikely to overfit the data.
 
+For simplicity, we only included the binary numeric features into account for the model: Gender, Permissions, No Unscheduled Meetings, 3 Hour Confirmation Call, Alernate Phone Number, Took Resume and Read JD, Confirmed Location, Call Letter Shared, Marital Status, and Local Candidate.
+
+When we created and tested our random forest model on a holdout dataset, our accuracy score was 71.5%, precision of 72%, and a recall of 86.7%.
+
+This may be improved by one hot encoding the columns that were dropped, but this would come at the cost of computational expense. This could be reconsidered later for future improvement.
+
+We wanted to look at and compare the feature importance of the random forest with our earlier EDA.
+
+<p align="center">
+  <img src="interview/images/rf_feature_importances.png" width = 1000>
+</p>
+
+We found that the most important feature for the random forest model was whether or not the candidate had permission to start at the scheduled time. This aligned with our previous finding but the second and third most important features did not (namely "Call letter Shared" and "Took Resume").
+
 ### **Multi-Layer Perceptron (MLP)**
 
-We started by building the simplest MLP consisting of ten binary input nodes, one hidden layer, and a single output node for predicted attendance. Below is an illustration that shows the simple model architecture (with only four inputs instead of ten)
+For our Multi-layer perceptron, we started by building the simplest model consisting of ten binary input nodes, one hidden layer, and a single output node for predicted attendance. Below is an illustration that shows the simple model architecture (with only four inputs instead of ten).
 
 <p align="center">
   <img src="interview/images/mlp.png" width = 1100>
 </p>
 
-After training, we found this simple model to perform quite well.
+After training, we found this simple model to perform nearly as well as the random forest.
 
-We began adding complexity to our model by changing the number of hidden layers and other hyper parameters with diminshing returns. The increase in computational time was not justified by the minimal increase training accuracy that we were observing.
+We began adding complexity to our mlp model by changing the number of hidden layers and other hyper parameters with diminshing returns. The increase in computational time was not justified by the minimal increase training accuracy that we were observing.
 
-For our final model we compromised heavily towards simplicity and reducing computational expense at a cost of slightly lower accuracies.
+If we were deploying this mlp model we would compromise heavily towards simplicity and reducing computational expense at a cost of slightly lower accuracies.
 
 ## **Results**
 
-Our best performing model was a random forest?Multi-Layer Perception?
+Our best performing model was a random forest with an overall accuracy of 71%.
 
-When we tested our MLP model on unseen data, our prediction accuracy was 70% with all 10 features not including date/time and 67% with only one feature (3hr_call). While there is only a small decrease in performance with limiting the model to a single feature, if computational expense was of concern we could prioritize the limiting of feature count.
+When we tested our MLP model on unseen data, our prediction accuracy was 70.6% with all 10 features not including date/time and 67.2% with only one feature (3 Hour Call). While there is only a small decrease in performance with limiting the model to a single feature, if computational expense was of concern we could prioritize the limiting of feature count.
 
+When compared to the Kaggle-dataset authors' naive bayes results, we did slightly better. They created a model with an overall accuracy of 70.8% while ours was 71.5%. 
 
-When compared to the Kaggle-dataset authors' naive bayes results, we did slightly worse. They created a model with an overall accuracy of 71% while ours was 70%.
+## **Relevance to the Real World**
 
+To improve job candidate interview attendance, we based our recommendations on the feature importances of the model. Since Permissions are the most important feature, we should require recruiters to confirm with the candidates that they have the required permissions to attend the interview at the scheduled time. We should also requiring the recruiter to share a call letter with the candidate. Finally, confirming that the candidate takes their resume and reads the job description should also improve interview attendance rates.
 
+## **Conclusion**
+
+While our model this is not an overwhelming triumph, we proved that we can make a comprable models to the authors while using different machine learning tools. With further cleaning of the data, we can possibly improve our models even further.
+
+## **Future Ideas for Improvement**
+- Give Unknown/NA entries in data a specific category and then one hot encode them instead of lumping them with either yes or no and using them as binary values
+- For random forest model and regression models, one hot encode the more complicated features and see if the trade off in computational expense is worth the potential increase in accuracy
+- Pull partial dependence plots based on feature importances to confirm directions of recommendation
+- Try more classification models
+- Use Natural language processing on the skillset column and clean it up to assess possible correlation
 
 ## **Citation**
 
