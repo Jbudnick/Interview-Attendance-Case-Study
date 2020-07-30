@@ -180,7 +180,7 @@ This may be improved by one hot encoding the columns that were dropped, but this
 We wanted to look at and compare the feature importance of the random forest with our earlier EDA.
 
 <p align="center">
-  <img src="interview/images/rf_feature_importances.png" width = 1000>
+  <img src="interview/images/Random Forest_feature_importances.png" width = 1000>
 </p>
 
 We found that the most important feature for the random forest model was whether or not the candidate had permission to start at the scheduled time. This aligned with our previous finding but the second and third most important features did not (namely "Call letter Shared" and "Took Resume").
