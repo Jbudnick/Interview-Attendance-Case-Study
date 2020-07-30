@@ -28,6 +28,9 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 
 from plot_creator import get_stacked_bars
+from random_forest import reg_model
+from mlp import Mlp_Model
+
 plt.rcParams.update({'font.size': 16})
 plt.style.use('fivethirtyeight')
 plt.close('all')
@@ -207,6 +210,7 @@ if __name__ == "__main__":
     df = load_df()
     df_col_setup(df)
     create_plots = True
+    get_random_forest = True
 
     if create_plots == True:
         for col in df.columns:
@@ -214,6 +218,15 @@ if __name__ == "__main__":
                 get_stacked_bars(df, x=col, y='Observed Attendance')
             except:
                 continue
-  
+    
+    if get_random_forest == True:
+        rf_df = df.copy()
+        rf_df = rf_df.drop(['Date', 'Company', 'Industry', 'Location', 'Position', 'Skillset', 'Interview Type', 'Candidate Job Location', 'Interview Venue', 'Candidate Native location', 'Year', 'Month', 'Day', 'Day of Week'], axis = 1)
+        y = rf_df.pop('Observed Attendance')
+        X = rf_df
+        rand_forest_model = reg_model(X, y)
+        rand_forest_model.rand_forest()
+        rand_forest_model.evaluate_model()
+        rand_forest_model.get_feature_importances()
 
     original_exp_attend = df.pop('Expected Attendance')
